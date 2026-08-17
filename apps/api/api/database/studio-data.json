@@ -1,0 +1,190 @@
+{
+  "projects": [
+    {
+      "id": "7cf4a049-6c34-4e8c-8cf4-cd0f73a62d59",
+      "name": "NNIT Studio Demo",
+      "bpm": 120,
+      "sampleRate": 48000,
+      "bitDepth": 24,
+      "createdAt": "2026-08-16T09:24:28.439Z",
+      "updatedAt": "2026-08-16T10:03:59.122Z",
+      "tracks": [
+        {
+          "id": "74d47b09-27b1-4144-9d5f-422e566f0cc9",
+          "name": "Lead Vocal",
+          "type": "audio",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": []
+        },
+        {
+          "id": "0eaab5f3-5160-4a9f-88c6-23ae157f84ad",
+          "name": "Backing Vocal",
+          "type": "audio",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": []
+        },
+        {
+          "id": "7773bde4-f3bc-4580-ba7c-70bb19bcfc2b",
+          "name": "Drums",
+          "type": "drums",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": []
+        },
+        {
+          "id": "7f272822-f57c-4beb-b8d7-0a333fb14098",
+          "name": "Bass",
+          "type": "instrument",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": []
+        },
+        {
+          "id": "8db4fd75-2bc7-48c2-a069-9a08cf35eaed",
+          "name": "Keys",
+          "type": "instrument",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": [],
+          "effects": {
+            "reverb": 0
+          },
+          "pan": 0
+        },
+        {
+          "id": "e086f5f3-15ba-4963-94b2-ea37bc75d30a",
+          "name": "Guitar",
+          "type": "instrument",
+          "mixer": {
+            "gain": 0,
+            "pan": 0,
+            "mute": false,
+            "solo": false,
+            "eq": {
+              "low": 0,
+              "mid": 0,
+              "high": 0
+            },
+            "compressor": {
+              "threshold": -18,
+              "ratio": 3
+            },
+            "reverb": 0.15,
+            "delay": 0
+          },
+          "clips": []
+        }
+      ]
+    }
+  ],
+  "aiJobs": [
+    {
+      "id": "3de41490-0bc1-451f-b47d-39081f9d09f3",
+      "projectId": "7cf4a049-6c34-4e8c-8cf4-cd0f73a62d59",
+      "type": "mix-assistant",
+      "status": "queued",
+      "provider": "adapter-required",
+      "createdAt": "2026-08-16T10:04:06.955Z"
+    }
+  ],
+  "marketplace": [
+    {
+      "id": "mix-review",
+      "name": "Professional Mix Review",
+      "category": "service",
+      "price": 49,
+      "currency": "EUR"
+    },
+    {
+      "id": "master-pack",
+      "name": "Mastering Preset Pack",
+      "category": "preset",
+      "price": 19,
+      "currency": "EUR"
+    },
+    {
+      "id": "vocal-chain",
+      "name": "Vocal Chain Pro",
+      "category": "preset",
+      "price": 29,
+      "currency": "EUR"
+    }
+  ]
+}

@@ -1,0 +1,46 @@
+name: NNIT Studio CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: API typecheck
+        run: npm run typecheck -w @nnit-studio/api
+
+      - name: Web typecheck
+        run: npm run typecheck -w @nnit-studio/web
+
+      - name: Desktop typecheck
+        run: npm run typecheck -w @nnit-studio/desktop
+
+      - name: Native host syntax
+        run: node --check apps/native-host/server.mjs
+
+      - name: Local AI syntax
+        shell: pwsh
+        run: |
+          if (Test-Path apps/local-ai/worker.py) {
+            python -m py_compile apps/local-ai/worker.py
+          }

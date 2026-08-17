@@ -1,0 +1,24 @@
+{
+  "name": "nnit-studio",
+  "version": "0.2.0",
+  "private": true,
+  "description": "NNIT Studio - global music production, mixing, mastering, AI and collaboration platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently -n API,WEB,DESKTOP,MOBILE -c auto \"npm run dev -w @nnit-studio/api\" \"npm run dev -w @nnit-studio/web\" \"npm run dev -w @nnit-studio/desktop\" \"npm run start -w @nnit-studio/mobile\"",
+    "dev:core": "concurrently -n API,WEB -c auto \"npm run dev -w @nnit-studio/api\" \"npm run dev -w @nnit-studio/web\"",
+    "build": "npm run build -w @nnit-studio/shared && npm run build -w @nnit-studio/audio-engine && npm run build -w @nnit-studio/ai-core && npm run build -w @nnit-studio/sdk && npm run build -w @nnit-studio/api && npm run build -w @nnit-studio/web && npm run build -w @nnit-studio/desktop",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "setup": "node scripts/setup.mjs",
+    "doctor": "node scripts/doctor.mjs",
+    "db:init": "node database/init.mjs",
+    "dev:v2": "concurrently -n API,WEB -c auto \"npm run dev -w @nnit-studio/api\" \"npm run dev -w @nnit-studio/web\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.0",
+    "typescript": "^5.9.2"
+  }
+}

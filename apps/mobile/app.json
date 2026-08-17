@@ -1,0 +1,1 @@
+{"expo":{"name":"NNIT Studio","slug":"nnit-studio","scheme":"nnitstudio","version":"0.1.0","orientation":"portrait","plugins":["expo-router"],"android":{"package":"com.nnit.studio"},"ios":{"bundleIdentifier":"com.nnit.studio"}}}

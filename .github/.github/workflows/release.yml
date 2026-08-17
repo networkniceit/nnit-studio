@@ -1,0 +1,32 @@
+name: NNIT Studio Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  validate-release:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck -w @nnit-studio/api
+      - run: npm run typecheck -w @nnit-studio/web
+      - run: npm run typecheck -w @nnit-studio/desktop
+      - run: node --check apps/native-host/server.mjs
+      - name: Release summary
+        shell: pwsh
+        run: |
+          "NNIT Studio release $env:GITHUB_REF_NAME validated." | Out-File release-summary.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nnit-studio-release-validation
+          path: release-summary.txt

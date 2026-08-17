@@ -1,0 +1,22 @@
+name: Dependency Security
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "20 4 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: NPM audit
+        run: npm audit --audit-level=high

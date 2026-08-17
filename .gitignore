@@ -1,0 +1,57 @@
+# dependencies
+node_modules/
+**/node_modules/
+
+# builds
+dist/
+build/
+out/
+coverage/
+*.tsbuildinfo
+
+# local runtime/data
+data/
+backups/
+recordings/
+exports/
+*.log
+logs/
+tmp/
+temp/
+
+# environment/secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+
+# IDE/OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Electron/package artifacts
+release/
+*.exe
+*.msi
+*.dmg
+*.AppImage
+
+# local AI/model data
+models/
+*.onnx
+*.gguf
+
+backup-v*/
+backup-*/
