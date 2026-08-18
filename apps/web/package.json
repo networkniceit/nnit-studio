@@ -6,7 +6,8 @@
     "scripts":  {
                     "dev":  "vite",
                     "build":  "tsc -b \u0026\u0026 vite build",
-                    "typecheck":  "tsc -b --pretty false"
+                    "typecheck":  "tsc -b --pretty false",
+                    "start":  "serve -s dist -l tcp://0.0.0.0:$PORT"
                 },
     "dependencies":  {
                          "@vitejs/plugin-react":  "5.1.4",
