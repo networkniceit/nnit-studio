@@ -1,1 +1,24 @@
-{"expo":{"name":"NNIT Studio","slug":"nnit-studio","scheme":"nnitstudio","version":"0.1.0","orientation":"portrait","plugins":["expo-router"],"android":{"package":"com.nnit.studio"},"ios":{"bundleIdentifier":"com.nnit.studio"}}}
+{
+  "expo": {
+    "name": "NNIT Studio",
+    "slug": "nnit-studio",
+    "scheme": "nnitstudio",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "plugins": [
+      "expo-router"
+    ],
+    "android": {
+      "package": "com.nnit.studio"
+    },
+    "ios": {
+      "bundleIdentifier": "com.nnit.studio"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3ba294d9-ab4a-4199-bab4-2ee70ae9ebbe"
+      }
+    }
+  }
+}
