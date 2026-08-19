@@ -578,3 +578,105 @@
     box-sizing:border-box;
   }
 }
+
+/* V39.3 Mobile Timeline Optimization */
+@media (max-width:700px){
+
+  .timelineScroller{
+    width:100%;
+    overflow-x:auto;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  .timeline{
+    width:max-content;
+    min-width:100%;
+  }
+
+  .ruler{
+    position:sticky;
+    top:0;
+    z-index:20;
+    min-width:920px;
+    height:42px;
+    padding-left:96px;
+    background:#0b111b;
+  }
+
+  .track{
+    display:grid;
+    grid-template-columns:96px 824px;
+    min-width:920px;
+    min-height:86px;
+  }
+
+  .trackname{
+    position:sticky;
+    left:0;
+    z-index:15;
+    width:96px;
+    min-width:96px;
+    padding:8px 6px;
+    background:#111925;
+    border-right:1px solid #2b3a50;
+  }
+
+  .trackname strong,
+  .trackname b{
+    font-size:13px;
+    line-height:1.2;
+  }
+
+  .trackname small{
+    font-size:9px;
+    line-height:1.2;
+  }
+
+  .trackname button{
+    min-width:34px;
+    height:34px;
+    padding:4px;
+    font-size:10px;
+  }
+
+  .lane{
+    width:824px;
+    min-width:824px;
+  }
+
+  .bottom{
+    max-height:42vh;
+    overflow-y:auto;
+  }
+
+  .panel{
+    padding:12px 10px;
+  }
+
+  .panel h3{
+    font-size:18px;
+  }
+
+  .controls{
+    grid-template-columns:1fr 1fr;
+  }
+
+  .controls label{
+    min-width:0;
+  }
+
+  .controls input,
+  .controls select{
+    width:100%;
+    min-width:0;
+  }
+
+  .masterCtl{
+    width:100%;
+  }
+
+  .masterCtl input{
+    width:100%;
+  }
+}
