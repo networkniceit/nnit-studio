@@ -680,3 +680,140 @@
     width:100%;
   }
 }
+
+/* V39.4 Android Safe Area + Compact Header */
+@media (max-width:700px){
+
+  body{
+    padding-top:env(safe-area-inset-top);
+    padding-bottom:env(safe-area-inset-bottom);
+  }
+
+  .app{
+    min-height:100dvh;
+    padding-bottom:calc(68px + env(safe-area-inset-bottom));
+  }
+
+  header{
+    box-sizing:border-box;
+    padding:8px 10px 6px;
+    gap:5px;
+    background:#0b1119;
+  }
+
+  .title{
+    width:100%;
+    min-width:0;
+  }
+
+  .title>input{
+    display:block;
+    width:100%;
+    max-width:100%;
+    height:34px;
+    padding:2px 4px;
+    border:0;
+    background:transparent;
+    font-size:21px;
+    font-weight:700;
+    line-height:1.1;
+    box-sizing:border-box;
+  }
+
+  .meta{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    width:100%;
+    white-space:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    font-size:10px;
+  }
+
+  .meta input{
+    width:62px;
+    min-width:62px;
+    height:31px;
+    padding:3px 6px;
+    font-size:16px;
+  }
+
+  .transport{
+    display:flex;
+    width:100%;
+    max-width:100%;
+    gap:5px;
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    padding-bottom:2px;
+  }
+
+  .transport button{
+    flex:0 0 38px;
+    width:38px;
+    height:38px;
+    padding:7px;
+  }
+
+  .status{
+    min-height:32px;
+    padding:7px 10px;
+    font-size:11px;
+  }
+
+  .toolbar{
+    min-height:54px;
+    padding:7px 9px;
+    gap:6px;
+  }
+
+  .toolbar button,
+  .toolbar .file{
+    min-height:42px;
+    padding:7px 11px;
+    font-size:12px;
+  }
+
+  .track{
+    grid-template-columns:82px 838px;
+    min-width:920px;
+  }
+
+  .trackname{
+    width:82px;
+    min-width:82px;
+    padding:7px 5px;
+  }
+
+  .trackname strong,
+  .trackname b{
+    font-size:12px;
+  }
+
+  .trackname small{
+    font-size:8px;
+  }
+
+  .trackname button{
+    min-width:29px;
+    width:29px;
+    height:29px;
+    padding:3px;
+  }
+
+  .ruler{
+    padding-left:82px;
+  }
+
+  aside{
+    height:64px;
+    padding-bottom:calc(5px + env(safe-area-inset-bottom));
+  }
+
+  aside nav button{
+    flex-basis:48px;
+    width:48px;
+    height:48px;
+  }
+}
