@@ -400,3 +400,77 @@
     gap:8px;
   }
 }
+
+/* V39.1 Mobile Studio Fit */
+@media (max-width:700px){
+
+  .app{
+    grid-template-columns:64px minmax(0,1fr);
+  }
+
+  aside{
+    width:64px;
+  }
+
+  header{
+    flex-direction:column;
+    align-items:stretch;
+  }
+
+  .transport{
+    max-width:none;
+    justify-content:flex-start;
+  }
+
+  .toolbar{
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+
+  .timelineScroller{
+    overflow-x:auto;
+    overflow-y:hidden;
+  }
+
+  .timeline{
+    min-width:100%;
+  }
+
+  .ruler{
+    min-width:760px;
+    padding-left:92px;
+  }
+
+  .track{
+    grid-template-columns:92px 668px;
+    min-width:760px;
+  }
+
+  .trackname{
+    width:92px;
+    min-width:92px;
+    padding:6px;
+  }
+
+  .lane{
+    width:668px;
+    min-width:668px;
+  }
+
+  .bottom{
+    width:100%;
+    overflow:visible;
+  }
+
+  .panel{
+    border-right:0;
+  }
+
+  .controls{
+    grid-template-columns:1fr;
+  }
+
+  .clipInspector{
+    grid-template-columns:1fr;
+  }
+}
