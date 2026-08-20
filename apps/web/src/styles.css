@@ -835,3 +835,16 @@
   .ruler span:nth-child(4n+1){display:block}
 }
 
+
+/* V39.5 Scrollable mobile timeline */
+@media (max-width:700px){
+  .timelineScroller{width:100%;max-width:100%;overflow-x:auto!important;overflow-y:auto}
+  .timeline{width:920px!important;min-width:920px!important}
+  .ruler{width:920px!important;min-width:920px!important;padding-left:92px}
+  .track{grid-template-columns:92px 828px!important;width:920px!important;min-width:920px!important}
+  .trackname{width:92px!important;min-width:92px!important}
+  .lane{width:828px!important;min-width:828px!important}
+  .clip span{font-size:12px!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .clip small{font-size:10px!important}
+}
+
