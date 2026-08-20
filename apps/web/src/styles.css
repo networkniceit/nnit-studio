@@ -817,3 +817,21 @@
     height:48px;
   }
 }
+
+/* V39.4 True Android Phone Fit */
+@media (max-width:700px){
+  html,body,#root,.app,main{width:100%;max-width:100%;overflow-x:hidden}
+  main{min-width:0}
+  .toolbar{display:flex;flex-wrap:wrap;white-space:normal;overflow-x:hidden;width:100%;max-width:100%;box-sizing:border-box}
+  .toolbar button,.toolbar .file{flex:1 1 auto;min-width:0}
+  .toolbar label{max-width:100%}
+  .timelineScroller{width:100%;max-width:100%;overflow-x:auto;overflow-y:auto}
+  .timeline{width:100%!important;min-width:100%!important}
+  .ruler{width:100%;min-width:0!important;padding-left:92px;box-sizing:border-box}
+  .track{grid-template-columns:92px minmax(0,1fr)!important;width:100%;min-width:0}
+  .trackname{width:92px;min-width:92px}
+  .lane{width:100%;min-width:0!important}
+  .ruler span{display:none}
+  .ruler span:nth-child(4n+1){display:block}
+}
+
