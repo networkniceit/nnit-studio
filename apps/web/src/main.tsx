@@ -108,6 +108,129 @@ function App(){
     return {segments,duration,playhead};
   },[videoDuration,videoTrimStart,videoTrimEnd,videoCuts,videoRemovedSegments,videoCurrentTime]);
 
+  const exportEditedVideo=async()=>{
+    const video=document.querySelector('.videoPreviewPanel video') as HTMLVideoElement|null;
+
+    if(!video||!videoUrl){
+      setStatus('Import a video before exporting');
+      return;
+    }
+
+    if(!videoEditedTimeline.segments.length){
+      setStatus('No kept video segments to export');
+      return;
+    }
+
+    const capture=(video as any).captureStream?.bind(video);
+
+    if(!capture){
+      setStatus('Edited video export is not supported by this browser');
+      return;
+    }
+
+    try{
+      setBusy('Rendering edited video...');
+
+      const stream:MediaStream=capture();
+
+      const mimeOptions=[
+        'video/webm;codecs=vp9,opus',
+        'video/webm;codecs=vp8,opus',
+        'video/webm'
+      ];
+
+      const mime=mimeOptions.find(x=>MediaRecorder.isTypeSupported(x))||'';
+
+      const recorder=new MediaRecorder(
+        stream,
+        mime?{mimeType:mime}:undefined
+      );
+
+      const chunks:BlobPart[]=[];
+
+      recorder.ondataavailable=e=>{
+        if(e.data.size)chunks.push(e.data);
+      };
+
+      const finished=new Promise<void>((resolve,reject)=>{
+        recorder.onstop=()=>resolve();
+        recorder.onerror=()=>reject(new Error('Video recorder failed'));
+      });
+
+      recorder.start(250);
+
+      for(const seg of videoEditedTimeline.segments){
+        video.pause();
+        video.currentTime=seg.start;
+
+        await new Promise<void>((resolve,reject)=>{
+          const done=()=>{
+            video.removeEventListener('seeked',done);
+            resolve();
+          };
+          const fail=()=>{
+            video.removeEventListener('error',fail);
+            reject(new Error('Video seek failed'));
+          };
+          video.addEventListener('seeked',done,{once:true});
+          video.addEventListener('error',fail,{once:true});
+        });
+
+        await video.play();
+
+        await new Promise<void>((resolve)=>{
+          const tick=()=>{
+            if(video.currentTime>=seg.end-.03||video.ended){
+              video.pause();
+              resolve();
+            }else{
+              requestAnimationFrame(tick);
+            }
+          };
+          requestAnimationFrame(tick);
+        });
+      }
+
+      recorder.stop();
+      await finished;
+
+      video.pause();
+      video.currentTime=videoTrimStart;
+      setVideoCurrentTime(videoTrimStart);
+
+      const blob=new Blob(
+        chunks,
+        {type:recorder.mimeType||'video/webm'}
+      );
+
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+
+      const base=(videoFileName||'video')
+        .replace(/\.[^.]+$/,'');
+
+      a.href=url;
+      a.download=base+'-edited.webm';
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+
+      window.setTimeout(()=>URL.revokeObjectURL(url),30000);
+
+      setStatus(
+        'Edited video exported successfully ? '+
+        videoEditedTimeline.duration.toFixed(2)+'s'
+      );
+    }catch(err:any){
+      setStatus(
+        'Edited video export failed: '+
+        (err?.message||'Unknown error')
+      );
+    }finally{
+      setBusy('');
+    }
+  };
+
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected Â· ${items.length} project${items.length===1?'':'s'} Â· GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error Â· '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
 
@@ -560,7 +683,15 @@ function App(){
         <p>Import and preview video files</p>
       </div>
 
-      <label className="file">
+      <div className="videoStudioHeaderActions">
+        <button
+          onClick={()=>void exportEditedVideo()}
+          disabled={!videoMediaId||!videoEditedTimeline.segments.length}
+        >
+          <FileDown/> Export Edited Video
+        </button>
+
+        <label className="file">
         <Upload/> Import Video
         <input
           type="file"
@@ -594,7 +725,8 @@ function App(){
             })();
           }}
         />
-      </label>
+        </label>
+      </div>
     </div>
 
     <div className="videoStudioGrid">
