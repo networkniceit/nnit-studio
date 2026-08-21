@@ -1038,3 +1038,4 @@
 .videoTimelineClip{height:100%;background:linear-gradient(180deg,#355178,#263f62);border:1px solid #6684ae;padding:18px 10px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .videoPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#ef5968;z-index:3}
 @media(max-width:800px){.videoStudioGrid{grid-template-columns:1fr}.videoStudioHeader{align-items:flex-start;flex-direction:column}.videoInspectorGrid{grid-template-columns:1fr 1fr}}
+.videoCutMarker{position:absolute;top:0;bottom:0;width:2px;background:#f5b942;z-index:2}
