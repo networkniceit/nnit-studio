@@ -45,7 +45,7 @@ function App(){
   const media=useRef<MediaRecorder|null>(null),chunks=useRef<Blob[]>([]),recordStarted=useRef(0),ctxRef=useRef<AudioContext|null>(null),sourceRef=useRef<AudioScheduledSourceNode[]>([]),analyserRef=useRef<Record<string,AnalyserNode>>({}),bufferCache=useRef<Map<string,AudioBuffer>>(new Map()),playTimer=useRef<number|null>(null),playbackOrigin=useRef({time:0,head:0}),dragRef=useRef<DragState|null>(null),historyRef=useRef<Project[]>([]),redoRef=useRef<Project[]>([]),activeRef=useRef<Project|null>(null),monitorStreams=useRef<Record<string,MediaStream>>({}),monitorNodes=useRef<Record<string,{source:MediaStreamAudioSourceNode;gain:GainNode}>>({});
   useEffect(()=>{activeRef.current=active},[active]);
   const saveInFlight=useRef(false);
-  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0);
+  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0);
 
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected · ${items.length} project${items.length===1?'':'s'} · GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error · '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
@@ -507,12 +507,25 @@ function App(){
           onChange={e=>{
             const f=e.target.files?.[0];
             if(!f)return;
-            if(videoUrl)URL.revokeObjectURL(videoUrl);
-            const u=URL.createObjectURL(f);
-            setVideoUrl(u);
-            setVideoFileName(f.name);
-            setVideoDuration(0);
-            setVideoCurrentTime(0);
+            void (async()=>{
+              try{
+                setBusy('Uploading video...');
+                const m=await uploadMedia(f,f.name,f.type||'video/mp4');
+                const mime=f.type||'video/mp4';
+                const u=`${API}/api/media/${m.id}?type=${encodeURIComponent(mime)}`;
+                setVideoMediaId(m.id);
+                setVideoMimeType(mime);
+                setVideoUrl(u);
+                setVideoFileName(f.name);
+                setVideoDuration(0);
+                setVideoCurrentTime(0);
+                setStatus('Video uploaded successfully');
+              }catch(err:any){
+                setStatus('Video upload failed: '+(err?.message||'Unknown error'));
+              }finally{
+                setBusy('');
+              }
+            })();
           }}
         />
       </label>
@@ -536,13 +549,13 @@ function App(){
         <div className="videoMeta">
           <span><b>File:</b> {videoFileName||'None'}</span>
           <span><b>Duration:</b> {videoDuration.toFixed(2)}s</span>
-          <span><b>Playhead:</b> {videoCurrentTime.toFixed(2)}s</span>
+          <span><b>Playhead:</b> {videoCurrentTime.toFixed(2)}s</span><span><b>Media:</b> {videoMediaId?videoMediaId.slice(0,8):'Not uploaded'}</span>
         </div>
       </div>
 
       <div className="videoInspectorPanel">
         <h3>Video Inspector</h3>
-        <p>Phase 1 preview is active. Persistent upload and editing come next.</p>
+        <p>Backend upload is active. Next: attach video to the project, reload it after refresh, and add trim/split editing.</p>
       </div>
     </div>
 
