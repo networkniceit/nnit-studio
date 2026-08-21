@@ -848,3 +848,125 @@
   .clip small{font-size:10px!important}
 }
 
+
+/* V39.6 Compact Android Studio Controls */
+@media (max-width:700px){
+
+  .toolbar{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:5px!important;
+    padding:6px!important;
+    min-height:0!important;
+    height:auto!important;
+    align-items:center!important;
+  }
+
+  .toolbar button,
+  .toolbar .file{
+    width:100%!important;
+    min-height:36px!important;
+    padding:6px 5px!important;
+    font-size:10px!important;
+    justify-content:center!important;
+  }
+
+  .toolbar .file{
+    grid-column:1 / -1;
+  }
+
+  .toolbar label{
+    min-width:0!important;
+    max-width:100%!important;
+    font-size:10px!important;
+    gap:3px!important;
+  }
+
+  .toolbar input[type="range"]{
+    width:70px!important;
+    max-width:100%!important;
+  }
+
+  .toolbar select{
+    min-width:0!important;
+    max-width:100%!important;
+    padding:5px!important;
+    font-size:10px!important;
+  }
+
+  .zoom{
+    font-size:10px!important;
+    gap:4px!important;
+  }
+
+  .track{
+    grid-template-columns:76px 844px!important;
+    width:920px!important;
+    min-width:920px!important;
+  }
+
+  .trackname{
+    width:76px!important;
+    min-width:76px!important;
+    padding:5px 4px!important;
+  }
+
+  .trackname b,
+  .trackname strong{
+    font-size:11px!important;
+  }
+
+  .trackname small{
+    font-size:7px!important;
+  }
+
+  .trackname button,
+  .tiny{
+    min-width:26px!important;
+    width:26px!important;
+    height:26px!important;
+    padding:2px!important;
+    font-size:9px!important;
+  }
+
+  .lane{
+    width:844px!important;
+    min-width:844px!important;
+  }
+
+  .ruler{
+    padding-left:76px!important;
+  }
+
+  .bottom{
+    height:auto!important;
+    max-height:none!important;
+  }
+
+  .panel{
+    padding:9px!important;
+    min-height:0!important;
+  }
+
+  .panel h3{
+    font-size:13px!important;
+    margin-bottom:7px!important;
+  }
+
+  .controls{
+    grid-template-columns:1fr 1fr!important;
+    gap:7px!important;
+  }
+
+  .controls label{
+    font-size:10px!important;
+  }
+
+  .controls input{
+    margin-top:5px!important;
+  }
+
+  .controls select{
+    padding:6px!important;
+  }
+}
