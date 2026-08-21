@@ -74,6 +74,40 @@ function App(){
 
   const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0),[videoCuts,setVideoCuts]=useState<number[]>([]),[selectedVideoSegment,setSelectedVideoSegment]=useState<number|null>(null),[videoRemovedSegments,setVideoRemovedSegments]=useState<{start:number;end:number}[]>([]);
 
+  const videoEditedTimeline=useMemo(()=>{
+    const sourceEnd=videoTrimEnd||videoDuration;
+    if(sourceEnd<=videoTrimStart)return {segments:[],duration:0,playhead:0};
+
+    const points=[
+      videoTrimStart,
+      ...videoCuts.filter(c=>c>videoTrimStart&&c<sourceEnd),
+      sourceEnd
+    ].sort((a,b)=>a-b);
+
+    const segments=points.slice(0,-1).map((start,i)=>({
+      start,
+      end:points[i+1]
+    })).filter(seg=>!videoRemovedSegments.some(
+      r=>Math.abs(r.start-seg.start)<.001&&Math.abs(r.end-seg.end)<.001
+    ));
+
+    const duration=segments.reduce((sum,seg)=>sum+(seg.end-seg.start),0);
+
+    let playhead=0;
+    for(const seg of segments){
+      if(videoCurrentTime>=seg.end){
+        playhead+=seg.end-seg.start;
+      }else if(videoCurrentTime>seg.start){
+        playhead+=videoCurrentTime-seg.start;
+        break;
+      }else{
+        break;
+      }
+    }
+
+    return {segments,duration,playhead};
+  },[videoDuration,videoTrimStart,videoTrimEnd,videoCuts,videoRemovedSegments,videoCurrentTime]);
+
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected Â· ${items.length} project${items.length===1?'':'s'} Â· GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error Â· '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
 
@@ -774,7 +808,11 @@ function App(){
         />)}
         <i
           className="videoPlayhead"
-          style={{left:videoDuration>0?((videoCurrentTime/videoDuration)*100)+'%':'0%'}}
+          style={{
+            left:videoEditedTimeline.duration>0
+              ? ((videoEditedTimeline.playhead/videoEditedTimeline.duration)*100)+'%'
+              : '0%'
+          }}
         />
       </div>
     </div>
