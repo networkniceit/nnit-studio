@@ -1039,3 +1039,7 @@
 .videoPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#ef5968;z-index:3}
 @media(max-width:800px){.videoStudioGrid{grid-template-columns:1fr}.videoStudioHeader{align-items:flex-start;flex-direction:column}.videoInspectorGrid{grid-template-columns:1fr 1fr}}
 .videoCutMarker{position:absolute;top:0;bottom:0;width:2px;background:#f5b942;z-index:2}
+.videoTimelineTrack{position:relative}
+.videoTimelineSegment{position:absolute;top:0;bottom:0;border:1px solid #7394bd;background:#355d8c;color:#fff;overflow:hidden}
+.videoTimelineSegment.selected{outline:3px solid #7dd3fc;z-index:3}
+.videoTimelineSegment span{font-weight:700}

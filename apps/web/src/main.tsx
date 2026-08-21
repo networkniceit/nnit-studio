@@ -70,7 +70,7 @@ function App(){
     }
   },[active?.id,active?.video?.mediaId]);
 
-  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0),[videoCuts,setVideoCuts]=useState<number[]>([]);
+  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0),[videoCuts,setVideoCuts]=useState<number[]>([]),[selectedVideoSegment,setSelectedVideoSegment]=useState<number|null>(null);
 
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected Â· ${items.length} project${items.length===1?'':'s'} Â· GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error Â· '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
@@ -681,9 +681,28 @@ function App(){
     <div className="videoTimelinePanel">
       <h3>Video Timeline</h3>
       <div className="videoTimelineTrack">
-        <div className="videoTimelineClip" style={{width:videoDuration>0?'100%':'0%'}}>
-          {videoFileName||'No video loaded'}
-        </div>
+        {videoDuration>0&&[videoTrimStart,...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),videoTrimEnd||videoDuration]
+          .sort((a,b)=>a-b)
+          .slice(0,-1)
+          .map((start,i,arr)=>{
+            const points=[videoTrimStart,...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),videoTrimEnd||videoDuration].sort((a,b)=>a-b);
+            const end=points[i+1];
+            const left=(start/videoDuration)*100;
+            const width=((end-start)/videoDuration)*100;
+            return <button
+              key={i}
+              type="button"
+              className={'videoTimelineSegment'+(selectedVideoSegment===i?' selected':'')}
+              style={{left:left+'%',width:width+'%'}}
+              onClick={()=>{
+                setSelectedVideoSegment(i);
+                const v=document.querySelector('.videoPreviewPanel video') as HTMLVideoElement|null;
+                if(v){v.currentTime=start;setVideoCurrentTime(start)}
+              }}
+            >
+              <span>{i+1}</span>
+            </button>
+          })}
         {videoCuts.map((cut,i)=><i
           key={i}
           className="videoCutMarker"
@@ -784,6 +803,7 @@ function App(){
 }
 
 createRoot(document.getElementById('root')!).render(<App/>);
+
 
 
 
