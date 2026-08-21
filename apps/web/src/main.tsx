@@ -70,7 +70,7 @@ function App(){
     }
   },[active?.id,active?.video?.mediaId]);
 
-  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0),[videoCuts,setVideoCuts]=useState<number[]>([]),[selectedVideoSegment,setSelectedVideoSegment]=useState<number|null>(null);
+  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0),[videoCuts,setVideoCuts]=useState<number[]>([]),[selectedVideoSegment,setSelectedVideoSegment]=useState<number|null>(null),[videoRemovedSegments,setVideoRemovedSegments]=useState<{start:number;end:number}[]>([]);
 
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected Â· ${items.length} project${items.length===1?'':'s'} Â· GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error Â· '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
@@ -674,6 +674,31 @@ function App(){
           }} disabled={!videoMediaId}>
             <Scissors/> Split at Playhead
           </button>
+
+          <button onClick={()=>{
+            if(selectedVideoSegment===null)return;
+
+            const points=[
+              videoTrimStart,
+              ...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),
+              videoTrimEnd||videoDuration
+            ].sort((a,b)=>a-b);
+
+            const start=points[selectedVideoSegment];
+            const end=points[selectedVideoSegment+1];
+
+            if(start===undefined||end===undefined)return;
+
+            setVideoRemovedSegments(prev=>[
+              ...prev.filter(r=>!(Math.abs(r.start-start)<.001&&Math.abs(r.end-end)<.001)),
+              {start,end}
+            ]);
+
+            setSelectedVideoSegment(null);
+            setStatus('Video segment removed');
+          }} disabled={selectedVideoSegment===null}>
+            <Trash2/> Delete Selected Segment
+          </button>
         </div>
       </div>
     </div>
@@ -687,6 +712,7 @@ function App(){
           .map((start,i,arr)=>{
             const points=[videoTrimStart,...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),videoTrimEnd||videoDuration].sort((a,b)=>a-b);
             const end=points[i+1];
+            if(videoRemovedSegments.some(r=>Math.abs(r.start-start)<.001&&Math.abs(r.end-end)<.001))return null;
             const left=(start/videoDuration)*100;
             const width=((end-start)/videoDuration)*100;
             return <button
@@ -803,6 +829,7 @@ function App(){
 }
 
 createRoot(document.getElementById('root')!).render(<App/>);
+
 
 
 
