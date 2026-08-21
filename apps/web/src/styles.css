@@ -1019,3 +1019,22 @@
     padding-left:104px!important;
   }
 }
+
+/* Video Studio */
+.videoStudioPage{padding:18px!important}
+.videoStudioHeader{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}
+.videoStudioHeader h2{margin:0}
+.videoStudioHeader p{color:#8d9db1}
+.videoStudioGrid{display:grid;grid-template-columns:1.6fr 1fr;gap:12px}
+.videoPreviewPanel,.videoInspectorPanel,.videoTimelinePanel{padding:14px;border:1px solid #2d4058;border-radius:10px;background:#0d1420}
+.videoPreviewPanel video{width:100%;max-height:420px;background:#000;border-radius:8px}
+.videoEmpty{min-height:260px;display:flex;align-items:center;justify-content:center;background:#080d15;border:1px dashed #31445f;border-radius:8px;color:#8293a8}
+.videoMeta{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;font-size:11px;color:#9cadc2}
+.videoInspectorGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.videoInspectorGrid label{display:flex;flex-direction:column;gap:5px;font-size:10px}
+.videoInspectorGrid input{background:#141d2a;color:#fff;border:1px solid #33445d;border-radius:6px;padding:7px}
+.videoTimelinePanel{margin-top:12px}
+.videoTimelineTrack{position:relative;height:64px;background:#09101a;border-radius:8px;overflow:hidden}
+.videoTimelineClip{height:100%;background:linear-gradient(180deg,#355178,#263f62);border:1px solid #6684ae;padding:18px 10px;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.videoPlayhead{position:absolute;top:0;bottom:0;width:2px;background:#ef5968;z-index:3}
+@media(max-width:800px){.videoStudioGrid{grid-template-columns:1fr}.videoStudioHeader{align-items:flex-start;flex-direction:column}.videoInspectorGrid{grid-template-columns:1fr 1fr}}
