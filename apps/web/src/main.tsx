@@ -709,6 +709,20 @@ function App(){
           }} disabled={selectedVideoSegment===null}>
             <Trash2/> Delete Selected Segment
           </button>
+
+          <button onClick={()=>{
+            if(!videoRemovedSegments.length)return;
+            const removedSegments=videoRemovedSegments.slice(0,-1);
+            setVideoRemovedSegments(removedSegments);
+            if(active?.video){
+              const next={...active,video:{...active.video,removedSegments}};
+              setActive(next);
+              void persistWhole(next);
+            }
+            setStatus('Last deleted video segment restored');
+          }} disabled={!videoRemovedSegments.length}>
+            <RotateCcw/> Restore Last Deleted
+          </button>
         </div>
       </div>
     </div>
