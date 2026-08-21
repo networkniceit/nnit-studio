@@ -777,35 +777,82 @@ function App(){
     <div className="videoTimelinePanel">
       <h3>Video Timeline</h3>
       <div className="videoTimelineTrack">
-        {videoDuration>0&&[videoTrimStart,...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),videoTrimEnd||videoDuration]
-          .sort((a,b)=>a-b)
-          .slice(0,-1)
-          .map((start,i,arr)=>{
-            const points=[videoTrimStart,...videoCuts.filter(c=>c>videoTrimStart&&c<(videoTrimEnd||videoDuration)),videoTrimEnd||videoDuration].sort((a,b)=>a-b);
-            const end=points[i+1];
-            if(videoRemovedSegments.some(r=>Math.abs(r.start-start)<.001&&Math.abs(r.end-end)<.001))return null;
-            const left=(start/videoDuration)*100;
-            const width=((end-start)/videoDuration)*100;
+        {videoDuration>0&&(()=>{
+          const sourceEnd=videoTrimEnd||videoDuration;
+
+          const points=[
+            videoTrimStart,
+            ...videoCuts.filter(c=>c>videoTrimStart&&c<sourceEnd),
+            sourceEnd
+          ].sort((a,b)=>a-b);
+
+          const sourceSegments=points.slice(0,-1).map((start,index)=>({
+            start,
+            end:points[index+1],
+            index
+          }));
+
+          const kept=sourceSegments.filter(seg=>
+            !videoRemovedSegments.some(
+              r=>Math.abs(r.start-seg.start)<.001&&Math.abs(r.end-seg.end)<.001
+            )
+          );
+
+          const editedDuration=kept.reduce(
+            (sum,seg)=>sum+(seg.end-seg.start),
+            0
+          );
+
+          let offset=0;
+
+          const blocks=kept.map(seg=>{
+            const segmentLength=seg.end-seg.start;
+            const left=editedDuration>0?(offset/editedDuration)*100:0;
+            const width=editedDuration>0?(segmentLength/editedDuration)*100:0;
+
+            offset+=segmentLength;
+
             return <button
-              key={i}
+              key={'segment-'+seg.index}
               type="button"
-              className={'videoTimelineSegment'+(selectedVideoSegment===i?' selected':'')}
+              className={'videoTimelineSegment'+(selectedVideoSegment===seg.index?' selected':'')}
               style={{left:left+'%',width:width+'%'}}
               onClick={()=>{
-                setSelectedVideoSegment(i);
+                setSelectedVideoSegment(seg.index);
                 const v=document.querySelector('.videoPreviewPanel video') as HTMLVideoElement|null;
-                if(v){v.currentTime=start;setVideoCurrentTime(start)}
+                if(v){
+                  v.currentTime=seg.start;
+                  setVideoCurrentTime(seg.start);
+                }
               }}
             >
-              <span>{i+1}</span>
-            </button>
-          })}
-        {videoCuts.map((cut,i)=><i
-          key={i}
-          className="videoCutMarker"
-          title={`Split ${cut.toFixed(2)}s`}
-          style={{left:videoDuration>0?((cut/videoDuration)*100)+'%':'0%'}}
-        />)}
+              <span>{seg.index+1}</span>
+            </button>;
+          });
+
+          let cutOffset=0;
+
+          const markers=kept.slice(0,-1).map((seg,i)=>{
+            cutOffset+=seg.end-seg.start;
+
+            return <i
+              key={'edited-cut-'+i}
+              className="videoCutMarker"
+              title={'Edited cut '+(i+1)}
+              style={{
+                left:editedDuration>0
+                  ? ((cutOffset/editedDuration)*100)+'%'
+                  : '0%'
+              }}
+            />;
+          });
+
+          return <>
+            {blocks}
+            {markers}
+          </>;
+        })()}
+
         <i
           className="videoPlayhead"
           style={{
