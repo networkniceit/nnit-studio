@@ -584,12 +584,25 @@ function App(){
               onTimeUpdate={e=>{
                 const v=e.currentTarget;
                 const end=videoTrimEnd||videoDuration;
+
+                const removed=videoRemovedSegments
+                  .filter(r=>r.end>r.start)
+                  .sort((a,b)=>a.start-b.start)
+                  .find(r=>v.currentTime>=r.start&&v.currentTime<r.end);
+
+                if(removed){
+                  v.currentTime=removed.end;
+                  setVideoCurrentTime(removed.end);
+                  return;
+                }
+
                 if(end>0&&v.currentTime>=end){
                   v.pause();
                   v.currentTime=videoTrimStart;
                   setVideoCurrentTime(videoTrimStart);
                   return;
                 }
+
                 if(v.currentTime<videoTrimStart){
                   v.currentTime=videoTrimStart;
                   setVideoCurrentTime(videoTrimStart);
