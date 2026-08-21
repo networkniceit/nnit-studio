@@ -650,8 +650,41 @@ function App(){
 
         <div className="videoMeta">
           <span><b>File:</b> {videoFileName||'None'}</span>
-          <span><b>Duration:</b> {videoDuration.toFixed(2)}s</span>
-          <span><b>Playhead:</b> {videoCurrentTime.toFixed(2)}s</span><span><b>Media:</b> {videoMediaId?videoMediaId.slice(0,8):'Not uploaded'}</span>
+
+          <span>
+            <b>Source:</b> {videoDuration.toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Trim Window:</b> {Math.max(
+              0,
+              (videoTrimEnd||videoDuration)-videoTrimStart
+            ).toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Edited:</b> {videoEditedTimeline.duration.toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Removed:</b> {Math.max(
+              0,
+              ((videoTrimEnd||videoDuration)-videoTrimStart)
+                - videoEditedTimeline.duration
+            ).toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Source Playhead:</b> {videoCurrentTime.toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Edited Playhead:</b> {videoEditedTimeline.playhead.toFixed(2)}s
+          </span>
+
+          <span>
+            <b>Media:</b> {videoMediaId?videoMediaId.slice(0,8):'Not uploaded'}
+          </span>
         </div>
       </div>
 
