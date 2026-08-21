@@ -970,3 +970,52 @@
     padding:6px!important;
   }
 }
+
+/* V39.7 Mobile left-edge + track header polish */
+@media (max-width:700px){
+
+  header,
+  .status,
+  .toolbar,
+  .timelineScroller,
+  .bottom{
+    padding-left:8px!important;
+    padding-right:8px!important;
+  }
+
+  .transport{
+    padding-left:4px!important;
+    overflow-x:auto!important;
+  }
+
+  .track{
+    grid-template-columns:104px 816px!important;
+    width:920px!important;
+    min-width:920px!important;
+  }
+
+  .trackname{
+    width:104px!important;
+    min-width:104px!important;
+    padding:6px 7px!important;
+  }
+
+  .trackname b,
+  .trackname strong{
+    font-size:11px!important;
+    line-height:1.15!important;
+  }
+
+  .trackname small{
+    font-size:8px!important;
+  }
+
+  .lane{
+    width:816px!important;
+    min-width:816px!important;
+  }
+
+  .ruler{
+    padding-left:104px!important;
+  }
+}
