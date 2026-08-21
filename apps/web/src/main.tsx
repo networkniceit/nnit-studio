@@ -577,7 +577,22 @@ function App(){
                   void persistWhole(next);
                 }
               }}
-              onTimeUpdate={e=>setVideoCurrentTime(e.currentTarget.currentTime||0)}
+              onTimeUpdate={e=>{
+                const v=e.currentTarget;
+                const end=videoTrimEnd||videoDuration;
+                if(end>0&&v.currentTime>=end){
+                  v.pause();
+                  v.currentTime=videoTrimStart;
+                  setVideoCurrentTime(videoTrimStart);
+                  return;
+                }
+                if(v.currentTime<videoTrimStart){
+                  v.currentTime=videoTrimStart;
+                  setVideoCurrentTime(videoTrimStart);
+                  return;
+                }
+                setVideoCurrentTime(v.currentTime||0);
+              }}
             />
           : <div className="videoEmpty">Import a video file to begin.</div>
         }
