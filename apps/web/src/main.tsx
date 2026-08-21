@@ -64,7 +64,7 @@ function App(){
     }
   },[active?.id,active?.video?.mediaId]);
 
-  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0);
+  const [videoFileName,setVideoFileName]=useState(''),[videoUrl,setVideoUrl]=useState(''),[videoMediaId,setVideoMediaId]=useState(''),[videoMimeType,setVideoMimeType]=useState(''),[videoDuration,setVideoDuration]=useState(0),[videoCurrentTime,setVideoCurrentTime]=useState(0),[videoTrimStart,setVideoTrimStart]=useState(0),[videoTrimEnd,setVideoTrimEnd]=useState(0);
 
   const load=async(prefer?:string)=>{try{const d=await request('/api/projects');const items:Project[]=Array.isArray(d.items)?d.items.map((p:any,i:number)=>normalizeProject(p,i)):[];setProjects(items);const p=items.find(x=>x.id===(prefer||activeRef.current?.id))||items[0]||null;setActive(p);if(p&&!p.tracks.some(t=>t.id===selected))setSelected(p.tracks[0]?.id||'');const maxEnd=p?Math.max(0,...p.tracks.flatMap(t=>t.clips.map(c=>c.start+c.duration)),...p.tracks.flatMap(t=>t.midiNotes.map(n=>n.start+n.duration))):0;if(maxEnd+10>timelineSeconds)setTimelineSeconds(Math.ceil((maxEnd+10)/30)*30);setStatus(`API connected Â· ${items.length} project${items.length===1?'':'s'} Â· GitHub + CI/CD Release Engineering V39`);setDirty(false)}catch(e:any){setStatus('API error Â· '+e.message)}};
   useEffect(()=>{void load();return()=>{if(playTimer.current)window.clearInterval(playTimer.current);sourceRef.current.forEach(s=>{try{s.stop()}catch{}});void ctxRef.current?.close()}},[]);
@@ -587,7 +587,50 @@ function App(){
 
       <div className="videoInspectorPanel">
         <h3>Video Inspector</h3>
-        <p>Backend upload is active. Next: attach video to the project, reload it after refresh, and add trim/split editing.</p>
+        <div className="videoInspectorGrid">
+          <label>Trim Start
+            <input
+              type="number"
+              min="0"
+              max={Math.max(0,videoDuration)}
+              step=".1"
+              value={videoTrimStart}
+              onChange={e=>setVideoTrimStart(clamp(Number(e.target.value)||0,0,Math.max(0,videoTrimEnd||videoDuration)))}
+            />
+          </label>
+
+          <label>Trim End
+            <input
+              type="number"
+              min="0"
+              max={Math.max(0,videoDuration)}
+              step=".1"
+              value={videoTrimEnd||videoDuration}
+              onChange={e=>setVideoTrimEnd(clamp(Number(e.target.value)||0,videoTrimStart,Math.max(videoTrimStart,videoDuration)))}
+            />
+          </label>
+
+          <label>Trimmed Length
+            <input
+              type="number"
+              readOnly
+              value={Number(Math.max(0,(videoTrimEnd||videoDuration)-videoTrimStart).toFixed(2))}
+            />
+          </label>
+        </div>
+
+        <div className="buttonRow">
+          <button onClick={()=>{
+            const v=document.querySelector('.videoPreviewPanel video') as HTMLVideoElement|null;
+            if(v){v.currentTime=videoTrimStart;setVideoCurrentTime(videoTrimStart)}
+          }}>Go to Trim Start</button>
+
+          <button onClick={()=>{
+            const end=videoTrimEnd||videoDuration;
+            const v=document.querySelector('.videoPreviewPanel video') as HTMLVideoElement|null;
+            if(v){v.currentTime=end;setVideoCurrentTime(end)}
+          }}>Go to Trim End</button>
+        </div>
       </div>
     </div>
 
@@ -691,6 +734,7 @@ function App(){
 }
 
 createRoot(document.getElementById('root')!).render(<App/>);
+
 
 
 
