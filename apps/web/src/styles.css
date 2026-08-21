@@ -1043,3 +1043,71 @@
 .videoTimelineSegment{position:absolute;top:0;bottom:0;border:1px solid #7394bd;background:#355d8c;color:#fff;overflow:hidden}
 .videoTimelineSegment.selected{outline:3px solid #7dd3fc;z-index:3}
 .videoTimelineSegment span{font-weight:700}
+/* Video Studio mobile layout fixes */
+@media(max-width:800px){
+  .videoStudioPage{
+    padding:12px!important;
+    overflow-x:hidden;
+  }
+
+  .videoStudioGrid{
+    grid-template-columns:minmax(0,1fr);
+  }
+
+  .videoPreviewPanel,
+  .videoInspectorPanel,
+  .videoTimelinePanel{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+    overflow:hidden;
+  }
+
+  .videoPreviewPanel video{
+    width:100%;
+    max-width:100%;
+    height:auto;
+  }
+
+  .videoMeta{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px 14px;
+  }
+
+  .videoInspectorGrid{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+
+  .videoInspectorGrid label,
+  .videoInspectorGrid input{
+    min-width:0;
+    width:100%;
+    box-sizing:border-box;
+  }
+
+  .videoInspectorPanel .buttonRow{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+
+  .videoInspectorPanel .buttonRow button{
+    width:100%;
+    min-width:0;
+    white-space:normal;
+    justify-content:center;
+  }
+
+  .videoTimelineTrack{
+    width:100%;
+    min-width:0;
+    overflow:hidden;
+  }
+}
+
+@media(max-width:480px){
+  .videoInspectorPanel .buttonRow{
+    grid-template-columns:1fr;
+  }
+}
