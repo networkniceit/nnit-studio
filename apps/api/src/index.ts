@@ -4,13 +4,51 @@ import websocket from '@fastify/websocket';
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import {spawn} from 'node:child_process';
+import {createRequire} from 'node:module';
 import {randomUUID,createHash} from 'node:crypto';
+
+const require=createRequire(import.meta.url);
+const ffmpegPath=require('ffmpeg-static') as string|null;
 import {db,newProject,touch,createMediaPath,mediaPath,type Track,type Clip,type MidiNote} from './store.js';
 
 const app=Fastify({logger:true,bodyLimit:200*1024*1024});
 await app.register(cors,{origin:true});
 await app.register(websocket);
 app.addContentTypeParser('application/octet-stream',{parseAs:'buffer'},(_req,body,done)=>done(null,body));
+
+const runFfmpeg=(args:string[])=>new Promise<void>((resolve,reject)=>{
+  if(!ffmpegPath){
+    reject(new Error('FFmpeg binary unavailable'));
+    return;
+  }
+
+  const child=spawn(ffmpegPath,args);
+
+  let stderr='';
+
+  child.stderr?.on('data',(d:Buffer)=>{
+    stderr+=d.toString();
+    if(stderr.length>16000){
+      stderr=stderr.slice(-16000);
+    }
+  });
+
+  child.on('error',(err:Error)=>{
+    reject(err);
+  });
+
+  child.on('close',(code:number|null)=>{
+    if(code===0){
+      resolve();
+    }else{
+      reject(new Error(
+        stderr.slice(-5000)||
+        ('FFmpeg exited with code '+String(code))
+      ));
+    }
+  });
+});
 
 app.get('/health',async()=>({ok:true,service:'nnit-studio-api',version:'0.39.0'}));
 app.get('/api/measurement/live',async()=>({status:'ok',source:'nnit-studio-v39',timestamp:new Date().toISOString()}));
@@ -102,7 +140,168 @@ app.patch('/api/projects/:id/tracks/:trackId',async(req:any,reply)=>{const p=db.
 app.delete('/api/projects/:id/tracks/:trackId',async(req:any,reply)=>{const p=db.project(req.params.id);if(!p)return reply.code(404).send({error:'Project not found'});p.tracks=p.tracks.filter(t=>t.id!==req.params.trackId);touch(p);return reply.code(204).send();});
 
 app.post('/api/media',async(req:any,reply)=>{const body=req.body as Buffer;if(!Buffer.isBuffer(body)||body.length===0)return reply.code(400).send({error:'Empty media body'});const id=randomUUID();fs.writeFileSync(createMediaPath(id),body);reply.code(201);return {id,size:body.length,mimeType:String(req.headers['x-media-type']||'application/octet-stream'),name:String(req.headers['x-media-name']||'audio')};});
-app.get('/api/media/:id',async(req:any,reply)=>{const file=mediaPath(req.params.id);if(!fs.existsSync(file))return reply.code(404).send({error:'Media not found'});reply.type(String(req.query?.type||'application/octet-stream'));return reply.send(fs.createReadStream(file));});
+app.get('/api/media/:id',async(req:any,reply)=>{
+  const file=mediaPath(req.params.id);
+
+  if(!fs.existsSync(file))
+    return reply.code(404).send({error:'Media not found'});
+
+  reply.type(String(req.query?.type||'application/octet-stream'));
+
+  if(req.query?.download){
+    const name=String(req.query.download)
+      .replace(/[^a-zA-Z0-9._-]/g,'_')
+      .slice(0,180);
+
+    reply.header(
+      'content-disposition',
+      'attachment; filename="'+name+'"'
+    );
+  }
+
+  return reply.send(fs.createReadStream(file));
+});
+
+app.post('/api/projects/:id/video/render',async(req:any,reply)=>{
+  const project=db.project(req.params.id);
+
+  if(!project)
+    return reply.code(404).send({error:'Project not found'});
+
+  const mediaId=String(
+    req.body?.mediaId||
+    project.video?.mediaId||
+    ''
+  );
+
+  if(!mediaId)
+    return reply.code(400).send({error:'Project has no video'});
+
+  const source=mediaPath(mediaId);
+
+  if(!fs.existsSync(source))
+    return reply.code(404).send({error:'Source video not found'});
+
+  const segments=(Array.isArray(req.body?.segments)
+    ? req.body.segments
+    : []
+  ).map((seg:any)=>({
+    start:Number(seg?.start),
+    end:Number(seg?.end)
+  })).filter((seg:any)=>
+    Number.isFinite(seg.start)&&
+    Number.isFinite(seg.end)&&
+    seg.start>=0&&
+    seg.end>seg.start+.01
+  );
+
+  if(!segments.length)
+    return reply.code(400).send({error:'No kept video segments'});
+
+  const outputId=randomUUID();
+  const tempOutput=path.join(os.tmpdir(),outputId+'.mp4');
+
+  const avFilters:string[]=[];
+
+  segments.forEach((seg:any,i:number)=>{
+    avFilters.push(
+      '[0:v]trim=start='+seg.start+':end='+seg.end+
+      ',setpts=PTS-STARTPTS[v'+i+']'
+    );
+
+    avFilters.push(
+      '[0:a]atrim=start='+seg.start+':end='+seg.end+
+      ',asetpts=PTS-STARTPTS[a'+i+']'
+    );
+  });
+
+  const avInputs=segments
+    .map((_seg:any,i:number)=>'[v'+i+'][a'+i+']')
+    .join('');
+
+  const avFilter=
+    avFilters.join(';')+
+    ';'+avInputs+
+    'concat=n='+segments.length+':v=1:a=1[vout][aout]';
+
+  try{
+    await runFfmpeg([
+      '-y',
+      '-i',source,
+      '-filter_complex',avFilter,
+      '-map','[vout]',
+      '-map','[aout]',
+      '-c:v','libx264',
+      '-preset','veryfast',
+      '-crf','23',
+      '-c:a','aac',
+      '-b:a','192k',
+      '-movflags','+faststart',
+      tempOutput
+    ]);
+  }catch{
+
+    // Fallback for source videos without an audio stream.
+    const vFilters=segments.map((seg:any,i:number)=>
+      '[0:v]trim=start='+seg.start+':end='+seg.end+
+      ',setpts=PTS-STARTPTS[v'+i+']'
+    );
+
+    const vInputs=segments
+      .map((_seg:any,i:number)=>'[v'+i+']')
+      .join('');
+
+    const vFilter=
+      vFilters.join(';')+
+      ';'+vInputs+
+      'concat=n='+segments.length+':v=1:a=0[vout]';
+
+    await runFfmpeg([
+      '-y',
+      '-i',source,
+      '-filter_complex',vFilter,
+      '-map','[vout]',
+      '-c:v','libx264',
+      '-preset','veryfast',
+      '-crf','23',
+      '-movflags','+faststart',
+      '-an',
+      tempOutput
+    ]);
+  }
+
+  const stored=createMediaPath(outputId);
+
+  fs.copyFileSync(tempOutput,stored);
+
+  try{
+    fs.unlinkSync(tempOutput);
+  }catch{}
+
+  const base=String(
+    req.body?.fileName||
+    project.video?.fileName||
+    'video'
+  )
+    .replace(/\.[^.]+$/,'')
+    .replace(/[^a-zA-Z0-9._-]/g,'_')
+    .slice(0,120);
+
+  const outputName=base+'-edited.mp4';
+
+  return {
+    id:outputId,
+    name:outputName,
+    mimeType:'video/mp4',
+    duration:segments.reduce(
+      (sum:number,seg:any)=>sum+(seg.end-seg.start),
+      0
+    ),
+    url:'/api/media/'+outputId+
+      '?type='+encodeURIComponent('video/mp4')+
+      '&download='+encodeURIComponent(outputName)
+  };
+});
 
 app.post('/api/projects/:id/tracks/:trackId/clips',async(req:any,reply)=>{const p=db.project(req.params.id);const t=p?.tracks.find(x=>x.id===req.params.trackId);if(!p||!t)return reply.code(404).send({error:'Track not found'});const b=req.body||{};const c:Clip={id:randomUUID(),name:String(b.name||'Audio clip').slice(0,120),start:Math.max(0,Number(b.start||0)),duration:Math.max(0,Number(b.duration||0)),kind:b.kind==='import'?'import':'recording',createdAt:new Date().toISOString(),mediaId:b.mediaId?String(b.mediaId):undefined,mimeType:b.mimeType?String(b.mimeType):undefined,mediaOffset:Math.max(0,Number(b.mediaOffset||0)),fadeIn:Math.max(0,Number(b.fadeIn||0)),fadeOut:Math.max(0,Number(b.fadeOut||0))};t.clips.push(c);touch(p);reply.code(201);return c;});
 app.patch('/api/projects/:id/tracks/:trackId/clips/:clipId',async(req:any,reply)=>{const p=db.project(req.params.id);const t=p?.tracks.find(x=>x.id===req.params.trackId);const c=t?.clips.find(x=>x.id===req.params.clipId);if(!p||!t||!c)return reply.code(404).send({error:'Clip not found'});const b=req.body||{};if(typeof b.name==='string')c.name=b.name.slice(0,120);for(const k of ['start','duration','mediaOffset','fadeIn','fadeOut'] as const)if(Number.isFinite(Number(b[k])))(c as any)[k]=Math.max(0,Number(b[k]));touch(p);return c;});
